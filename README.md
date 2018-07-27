@@ -25,4 +25,4 @@ reddit2tumblr supports:
    - Enter your secrets
    - Replace blogname value with yours
    - Adjust subreddit, min_score, post_limit, post_sort and delete_images_when_done to your preferences
-   - If needed you can change the tags in the get_tags functions. Use the existing categories as a reference on how to structure them
+   - Set up your tags and and make tag categories
