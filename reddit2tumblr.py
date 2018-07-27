@@ -1,4 +1,4 @@
-
+# py 3.6 in users\rin\appdata\local\programs\python\python36
 import os
 import praw  # reddit api
 import urllib  # view websites
@@ -14,14 +14,14 @@ client = pytumblr.TumblrRestClient('A',    # TUMBLR secrets. don't share
                                    'C',
                                    'D')
 
-blog_name = 'BLOGNAME'  # your blog name on the url www.BLOGNAME.tumblr.com
+blog_name = '30MinuteTest'  # your blog name on the url www.BLOGNAME.tumblr.com
 
 r = praw.Reddit(client_id='X',  # REDDIT secrests. again don't share these
                 client_secret='Y',
                 user_agent='reddit2tumblr v.5 by rin')
 
 # subreddit(s) you want to grab posts from. if you want to do more than one do "sub1+sub2"
-subreddit = r.subreddit("funny")
+subreddit = r.subreddit("funny+meirl+me_irl+AdviceAnimals+teenagers+HistoryMemes+anime_irl+bikibottomtwitter+blackpeoplegifs+blackpeopletwitter+comedycemetery+dankmemes+humor+meme_irl+memes+wholesomememes+surrealmemes+DeepFriedMemes+ComedyNecrophilia+bonehurtingjuice+trippinthroughtime+wholesomebpt+youdontsurf+4chan+fakehistoryporn+hmmm+dank_meme+2juicy4bones+deepfriedsurrealmemes+Patrig+whothefuckup+anthologymemes+equelMemes+OTMemes+PrequelMemes+SequelMemes+WhitePeopleTwitter+youtubehaiku+NotTimAndEric+InterdimensionalCable+gifs+combinedgifs+HighQualityGifs+reactiongifs+reallifedoodles")
 
 min_score = 1  # min score a post can have to post
 
@@ -36,156 +36,55 @@ def unic(msg):  # convert text for saving in .txt
     return msg.encode("utf-8")
 
 
-def getTags(redsub):    # input subreddit and
-    print("Input Sub: " + str.lower(str(redsub)))
+def getTags(sub):
+    '''
+    You give it a subreddit and it will return a list of tags based on that subreddit
 
-    normal = ["meme", "memes", "dank", "funny", "lol", "humor", "humour", "lmao", "dank meme", "dank memes",
-              "super dank", "lolz", "funny pics", "funny post", "funny", "lmfao", "me_irl", "30minute"]
+    First it make the sub to be a string since praw passes an object instead of a string (???)
 
-    starwars = ["star wars", "starwars", "star wars memes", "starwars memes", "prequelmemes", "prequel memes", "sequel memes"]
+    base_tags are the tags that will be applied to every single post.
+        Example: You run a meme blog and want every post to have the 'meme' tag in it, put it in here rather than typing it over and over
 
-    history = ["history", "history memes", "fake history", "fake history porn", "funny history"]
+    category_1_tags is another category with tags specific to that category. Obviously change the name to fit the category
 
-    surreal = ["surreal", "surreal memes", "weird memes", "wierd memes", "deep fried memes", "fired memes"]
+    Print statment is there to tell you what the subreddit was and to make sure the categories were right
 
-    wholesome = ["wholesome", "wholesome memes", "nice memes"]
+    Sets the tags to the base tags since every post gets them
 
-    twitter = ["twitter memes", "black people twitter", "white people twitter", "funny twitter"]
+    Then the If statment part category part:
+        It checks if the input subreddit is the same as one of the subreddits listed in that category
+        Then prints out the output category name
+        Then adds the additional tags to the post tag list
 
-    anime = ["anime memes", "anime", "funny anime", "animememes", "animemes"]
+        I wouldn't use elif because some subs can be multiple categories
+            Example: r/wholesomebpt in my implementation of this program is both in the twitter category and the wholesome category
 
-    stockphoto = ["stockphoto memes", "stock photo memes", "stock photo", "stock photos"]
+        Make as many categories as you want. It doesn't  have to be one
 
-    chan = ["4chan", "greentext", "green text"]
+    Just for some consistency, if the tags are the same as the base tags it will tell you
 
-    hmmm = ["hm", "hmm", "hmmm", "hmmmm", "makes you think", "think", "wierd", "weird"]
 
-    youtube = ["youtube", "video", "gif", "gifs", "funny videos", "videos", "meme video"]
+    Once all the appropriate tags are added return the tags for the post
+    '''
 
-    gifs = ["gif", "gifs", "funny gif", "funny gifs", "jif", "high quality gifs"]
+    sub = str(sub)
 
-    # STAR WARS MEMES
-    if str.lower(str(redsub)) == ('anthologymemes') or str.lower(str(redsub)) == ('equelmemes') or str.lower(
-            str(redsub)) == ('otMemes') or str.lower(str(redsub)) == ('prequelmemes') or str.lower(str(redsub)) == (
-    'sequelmemes'):
-        print("Output Tags: STAR WARS")
-        tags = normal
-        tags.extend(starwars)
+    base_tags = ["example tag 1", "example tag 2"]  # base tags are what every single post will get
 
-        print(tags)
+    category_1_tags = ["additional tag example 1", "aditional tag example 2"]
 
-        return tags
+    print("Input Sub: " + str.lower(sub))
+    tags = base_tags
 
-    # HISTORY MEMES
-    if str.lower(str(redsub)) == ('mistoryMemes') or str.lower(str(redsub)) == ('trippinthroughtime') or str.lower(
-            str(redsub)) == ('fakehistoryporn'):
-        print("Output Tags: HISTORY")
-        tags = normal
-        tags.extend(history)
+    # CATEGORY 1
+    if str.lower(sub) == ('example_subreddit') or str.lower(sub) == ('another_example_sub'):
+        print("Output Tags: CATEGORY NAME")
+        tags.extend(category_1_tags)
 
-        print(tags)
-
-        return tags
-
-    # SURREAL MEMES / DEEP FRIED MEMES
-    if (str.lower(str(redsub)) == ('deepfriedmemes') or str.lower(str(redsub)) == (
-    'deepfriedsurrealmemes') or str.lower(str(redsub)) == ('surrealmemes') or str.lower(str(redsub)) == (
-    'whothefuckup')):
-        print("Output Tags: SURREAL")
-        tags = normal
-        tags.extend(surreal)
-
-        print(tags)
-
-        return tags
-
-    # WHOLESOME MEMES
-    if str.lower(str(redsub)) == ('wholesomememes') or str.lower(str(redsub)) == ('wholesomebpt'):
-        print("Output Tags: WHOLESOME")
-        tags = normal
-        tags.extend(wholesome)
-
-        print(tags)
-
-        return tags
-
-    # TWITTER MEMES
-    if (str.lower(str(redsub)) == ('bikibottomtwitter') or str.lower(str(redsub)) == (
-    'blackpeopletwitter') or str.lower(str(redsub)) == ('whitepeopletwitter')):
-        print("Output Tags: TWITTER")
-        tags = normal
-        tags.extend(twitter)
-
-        print(tags)
-
-        return tags
-    # ANIME MEMES
-    if (str.lower(str(redsub)) == ('anime_irl')):
-        print("Output Tags: ANIME")
-        tags = normal
-        tags.extend(anime)
-
-        print(tags)
-
-        return tags
-
-    # STOCK PHOTO MEMES
-    if str.lower(str(redsub)) == ('youdontsurf'):
-        print("Output Tags: YOUDONTSURF")
-        tags = normal
-        tags.extend(stockphoto)
-
-        print(tags)
-
-        return tags
-
-    # 4CHAN MEMES
-    if str.lower(str(redsub)) == ('4chan'):
-        print("Output Tags: 4CHAN")
-
-        tags = normal
-        tags.extend(chan)
-
-        print(tags)
-
-        return tags
-
-    # YOUTUBE / VIDEO
-    if str.lower(str(redsub)) == 'youtubehaiku' or str.lower(str(redsub)) == 'nottimanderic' or str.lower(str(redsub)) == 'interdimensionalcable':
-        print('Output Tags: YouTube / Video')
-
-        tags = normal
-        tags.extend(youtube)
-
-        return tags
-
-    # GIFS
-    if str.lower(str(redsub)) == 'gifs' or str.lower(str(redsub)) == 'combinedgifs' or str.lower(str(redsub)) == 'highqualitygifs' or str.lower(str(redsub)) == 'reactiongifs' or str.lower(str(redsub)) == 'reallifedoodles':
-        print('Oyput Tags: GIFS')
-
-        tags = normal
-        tags.extend(gifs)
-
-        return tags
-
-    # HMMM MEMES
-    if str.lower(str(redsub)) == ("hmmm"):
-        print('Output Tags: HMMM')
-        tags = normal
-        tags.extend(hmmm)
-
-        print(tags)
-
-        return tags
-    if (str.lower(str(redsub)) == ('funny') or str.lower(str(redsub)) == ('meirl') or str.lower(str(redsub)) == (
-    'me_irl') or str.lower(str(redsub)) == ('adviceanimals') or str.lower(str(redsub)) == ('teenagers') or str.lower(
-            str(redsub)) == ('blackpeoplegifs') or str.lower(str(redsub)) == ('comedycemetery') or str.lower(
-            str(redsub)) == ('dankmemes') or str.lower(str(redsub)) == ('humor') or str.lower(str(redsub)) == (
-    'meme_irl') or str.lower(str(redsub)) == ('memes') or str.lower(str(redsub)) == ('comedynecrophilia') or str.lower(
-            str(redsub)) == ('bonehurtingjuice') or str.lower(str(redsub)) == ('dank_meme') or str.lower(
-            str(redsub)) == ('2juicy4bones') or str.lower(str(redsub)) == ('patrig') or str.lower(str(redsub)) == ('gifs') or str.lower(str(redsub)) == ('youtubehaiku')):
+    if tags == base_tags:
         print("Output Tags: NORMIE")
-        return (normal)
+
+    return tags
 
 
 def q_post(file_name, file_type, subreddit, caption):  # i made q_post it's own function because i'm lazy and don't want to type out this post thing so much
@@ -280,7 +179,7 @@ def main():
             os.remove(f)
 
         print('Images folder cleared')
-    print('!!! DONE STEALING MEMES !!!')
+    print('!!! DONE MAKING POSTS !!!')
     target.close()  # unload the text
     input();
 
