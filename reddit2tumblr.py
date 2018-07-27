@@ -1,4 +1,4 @@
-# py 3.6 in users\rin\appdata\local\programs\python\python36
+
 import os
 import praw  # reddit api
 import urllib  # view websites
@@ -14,14 +14,14 @@ client = pytumblr.TumblrRestClient('A',    # TUMBLR secrets. don't share
                                    'C',
                                    'D')
 
-blog_name = '30MinuteTest'  # your blog name on the url www.BLOGNAME.tumblr.com
+blog_name = 'BLOGNAME'  # your blog name on the url www.BLOGNAME.tumblr.com
 
 r = praw.Reddit(client_id='X',  # REDDIT secrests. again don't share these
                 client_secret='Y',
                 user_agent='reddit2tumblr v.5 by rin')
 
 # subreddit(s) you want to grab posts from. if you want to do more than one do "sub1+sub2"
-subreddit = r.subreddit("funny+meirl+me_irl+AdviceAnimals+teenagers+HistoryMemes+anime_irl+bikibottomtwitter+blackpeoplegifs+blackpeopletwitter+comedycemetery+dankmemes+humor+meme_irl+memes+wholesomememes+surrealmemes+DeepFriedMemes+ComedyNecrophilia+bonehurtingjuice+trippinthroughtime+wholesomebpt+youdontsurf+4chan+fakehistoryporn+hmmm+dank_meme+2juicy4bones+deepfriedsurrealmemes+Patrig+whothefuckup+anthologymemes+equelMemes+OTMemes+PrequelMemes+SequelMemes+WhitePeopleTwitter+youtubehaiku+NotTimAndEric+InterdimensionalCable+gifs+combinedgifs+HighQualityGifs+reactiongifs+reallifedoodles")
+subreddit = r.subreddit("funny")
 
 min_score = 1  # min score a post can have to post
 
