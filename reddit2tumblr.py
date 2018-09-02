@@ -1,4 +1,3 @@
-# py 3.6 in users\rin\appdata\local\programs\python\python36
 import os
 import praw  # reddit api
 import urllib  # view websites
