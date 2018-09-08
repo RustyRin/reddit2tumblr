@@ -4,20 +4,33 @@ import urllib  # view websites
 import time  # get time
 from imgur_downloader import ImgurDownloader    #get images (specifically gifv)
 import pytumblr #tumblr api
-from pytube import YouTube  #youtube downloading api
 import glob # for deleting things in the image folder
 
+
+def read_secrets(filename):
+    try:
+        text = open(filename, 'r')
+        lines = []
+        for line in text:
+            line = line.replace('\n', '')
+            lines.append(line)
+        text.close()
+        return lines
+    except:
+        print('!!! Cannot find ' + filename + ' or it has been deleted !!!')
+
+
 # SETTINGS
-client = pytumblr.TumblrRestClient('A',    # TUMBLR secrets. don't share
-                                   'B',
-                                   'C',
-                                   'D')
+client = pytumblr.TumblrRestClient(read_secrets('secrets_tumblr')[0],    # TUMBLR secrets. don't share
+                                   read_secrets('secrets_tumblr')[1],
+                                   read_secrets('secrets_tumblr')[2],
+                                   read_secrets('secrets_tumblr')[3])
 
 blog_name = 'BLOGNAME'  # your blog name on the url www.BLOGNAME.tumblr.com
 
-r = praw.Reddit(client_id='X',  # REDDIT secrests. again don't share these
-                client_secret='Y',
-                user_agent='reddit2tumblr v.5 by rin')
+r = praw.Reddit(client_id=read_secrets('secrets_reddit')[0],  # REDDIT secrests. again don't share these
+                client_secret=read_secrets('secrets_reddit')[1],
+                user_agent='reddit2tumblr v.6 by rin')
 
 # subreddit(s) you want to grab posts from. if you want to do more than one do "sub1+sub2"
 subreddit = r.subreddit("SUBREDDITS")
@@ -96,6 +109,7 @@ def q_post(file_name, file_type, subreddit, caption):  # i made q_post it's own 
 
 
 def main():
+    # Initializing
     current_dir = os.path.dirname(os.path.realpath(__file__))  # pytube download requires a full file path and using this to get it
 
     print("opening file..")  # open output in writing mode
@@ -104,7 +118,7 @@ def main():
     print("removing file..")  # reset output
     target.truncate()
 
-    print("writing file..\n______________________________\n")
+    print("writing file..")
 
     print('getting submission')
     submissions = subreddit.top(post_sort, limit=post_limit)  # can be 'day' 'week' 'month' 'year' and probably 'all'e
@@ -115,72 +129,112 @@ def main():
     with open('cache.txt', 'a+') as cache:  # with cache open
         for submission in submissions:  # go through all submissions gathered
             time.sleep(.025)  # wait so i can watch it work
-            # the line below is a mess, it checks if the submission hasn't been grabbed, then if the domain is valid and the score is okay
-            if submission.id not in existing and submission.score >= min_score and (
-                    submission.domain == "i.imgur.com" or submission.domain == "m.imgur.com" or submission.domain == "imgur.com" or submission.domain == "i.redd.it" or submission.domain == 'gfycat.com' or submission.domain == 'youtu.be' or submission.domain == 'youtube.com') and (
-                    '.gif' not in submission.url or '.jpg' in submission.url or '.png' in submission.url or '.JPEG' in submission.url):
-                print("\n______________________________\nadding " + submission.id + " to cache")
-                existing.append(submission.id)
-                cache.write(submission.id + "\n")
-                if '.gif' in submission.url and '.gifv' not in submission.url or 'cat' in submission.domain:  # if it is a gif and not a gifv
-                    print('File format: GIF')
-                    if 'gfycat' in submission.domain:
-                        gfycat_d = submission.url[:8] + 'thumbs.' + submission.url[8:] + '-size_restricted.gif'  # gotta do substrings because the link reddit gives is wrong 100% of the time
-                        urllib.request.urlretrieve(gfycat_d, 'images/' + submission.id + '.gif')
-                    else:
-                        urllib.request.urlretrieve(submission.url, "images/" + submission.id + ".gif")
-                    q_post('images/' + submission.id + '.gif', 'photo', submission.subreddit, submission.title)
-                elif '.jpg' in submission.url:
-                    print('File format: jpg')
-                    urllib.request.urlretrieve(submission.url, "images/" + submission.id + ".jpg")
-                    q_post('images/' + submission.id + '.jpg', 'photo', submission.subreddit, submission.title)
-                elif '.png' in submission.url:
-                    print('File format: png')
-                    urllib.request.urlretrieve(submission.url, "images/" + submission.id + ".png")
-                    q_post('images/' + submission.id + '.png', 'photo', submission.subreddit, submission.title)
-                elif '.JPEG' in submission.url:
-                    print('File format: JPEG')
-                    urllib.request.urlretrieve(submission.url, "images/" + submission.id + ".JPEG")
-                    q_post('images/' + submission.id + '.JPEG', 'photo', submission.subreddit, submission.title)
-                elif '.gifv' in submission.url or 'cat' in submission.url:
-                    print('File format: GIFV, saved as mp4')
-                    if 'imgur' in submission.url:
-                        print('from imgur')
-                        ImgurDownloader(submission.url, 'images/').save_images()
-                    q_post('images/' + submission.id + '.mp4', 'video', submission.subreddit, submission.title)
-                elif 'youtu.be' in submission.domain or 'youtube.com' in submission.domain:
-                    video = YouTube(submission.url)
-                    stream = video.streams.filter(file_extension='mp4').first()
-                    print(stream)
+            if submission.id not in existing and submission.score >= min_score:     # if we don't have it and it has enough points
 
-                    print(current_dir)
-                    stream.download(current_dir + '/images')    #
-                    print(submission.url)
-                    new_title = submission.title    # made this because posts from r/youtubehaiku have a [poetry] or [haiku] prefix and the below if/elif cuts out the prefix
+                # Adding to cache
+                existing.append(submission.id)      # writes down the submission id so we post it again
+                cache.write(submission.id + '\n')
+
+                # Image sites
+                if submission.domain == 'i.imgur.com' or submission.domain == 'm.imgur.com' or submission.domain == 'imgur.com' or submission.domain == 'i.reddit.com':
+
+                    print('\n______________________________\n')
+
+                    # GIFs (but not GIFV)
+                    if '.gif' in submission.url and '.gifv' not in submission.url:
+                        print('File format: GIF')
+                        urllib.request.urlretrieve(submission.url, 'images/' + submission.id + '.gif')
+                        q_post('images/' + submission.id + '.gif', 'photo', submission.subreddit, submission.title)
+                        continue
+
+                    # JPG
+                    elif '.jpg' in submission.url:
+                        print('File format: JPG')
+                        urllib.request.urlretrieve(submission.url, 'images/' + submission.id + '.jpg')
+                        q_post('images/' + submission.id + '.jpg', 'photo', submission.subreddit, submission.title)
+                        continue
+
+                    # PNG
+                    elif '.png' in submission.url:
+                        print('File Format: PNG')
+                        urllib.request.urlretrieve(submission.url, 'images/' + submission.id + '.png')
+                        q_post('images/' + submission.id + '.png', 'photo', submission.subreddit, submission.title)
+                        continue
+
+                    # JPEG
+                    elif '.JPEG' in submission.url:
+                        print('File Format: JPEG')
+                        urllib.request.urlretrieve(submission.url, 'images/' + submission.id + '.JPEG')
+                        q_post('images/' + submission.id + '.JPEG', 'photo', submission.subreddit, submission.title)
+                        continue
+
+                # YouTube
+                if submission.domain == 'youtu.be' or submission.domain == 'youtube.com':
+
+                    print('\n______________________________\n')
+
+                    print('File Format: Video (YouTube)')
+                    try:
+                        os.system('youtube-dl ' + submission.url + ' -o images/' + submission.id + '.mp4')
+                    except:
+                        print('!!! Could not download YouTube video !!!')
+                        continue
+
+                    # this if elif is if the video came from youtubehaiku
+                    # they put stuff like this in front of the name, so i remove it
+                    new_title = submission.title
                     if '[poetry]' in str.lower(submission.title):
                         new_title = submission.title[9:]
                     elif '[haiku]' in str.lower(submission.title):
                         new_title = submission.title[8:]
-                    q_post(current_dir + '\\images\\' + video.title + '.mp4', 'video', submission.subreddit, new_title)
-                else:
-                    print("!!! COULD NOT DOWNLOAD POST !!!")
+                    q_post(current_dir + '/images/' + submission.id + '.mp4', 'video', submission.subreddit, new_title)
+                    continue
 
-            elif submission.id not in existing:  # why i had that whole thing in one line
-                existing.append(submission.id)  # cache this submission
-                cache.write(submission.id + "\n")
+                # GFYCAT
+                if '.gifv' in submission.url and submission.domain == 'gfycat.com':
+
+                    print('\n______________________________\n')
+
+                    print('File Format: GIF (GFYCAT)')
+                    # gotta do substrings because the link reddit gives is wrong 100% of the time
+                    gfycat_d = submission.url[:8] + 'thumbs.' + submission.url[8:] + '-size_restricted.gif'
+                    try:
+                        urllib.request.urlretrieve(gfycat_d, 'images/' + submission.id + '.gif')
+                    except:
+                        print("!!! Tried to download GFYCAT, failed !!!")
+                        continue
+                    q_post('images/' + submission.id + '.gif', 'photo', submission.subreddit, submission.title)
+                    continue
+
+                # v.reddit.com
+                if submission.domain == 'v.reddit.com':
+
+                    print('\n______________________________\n')
+
+                    print('File format: Video (v.reddit)')
+                    try:
+                        os.system('youtube-dl ' + submission.url + ' -o images/' + submission.id + '.mp4')
+                    except:
+                        print('!!! Could not download YouTube video !!!')
+                        continue
+
+                    q_post('images/' + submission.id + '.mp4', 'video', submission.subreddit, submission.title)
+                    continue
             else:
-                print("Already Have " + str(submission.id) + "!")
+                print('Already have ' + submission.id + '!')
+
+
 
     if delete_images_when_done:
-        folder = current_dir + '\\images\\*'
+        folder = current_dir + '/images/*'
         files = glob.glob(folder)
         for f in files:
             os.remove(f)
 
         print('Images folder cleared')
-    print('!!! DONE MAKING POSTS !!!')
+    print('!!! DONE STEALING MEMES !!!')
     target.close()  # unload the text
-    input();
+    input()
 
 
 if __name__ == "__main__":
